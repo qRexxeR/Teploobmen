@@ -1,0 +1,20 @@
+@model IReadOnlyList<SavedCalculation>
+@{
+    ViewData["Title"] = "Сохранённые расчёты";
+    string N(double value) => value.ToString("0.###", CultureInfo.GetCultureInfo("ru-RU"));
+}
+<div class="page-heading"><div><div class="eyebrow">ПРАКТИКА 2 <span>/</span> ВАРИАНТЫ РАСЧЁТА</div><h1>Сохранённые расчёты</h1><p>Возвращайтесь к вариантам, чтобы просмотреть результаты или изменить исходные данные.</p></div><a class="button primary" asp-action="Index">Новый расчёт <span aria-hidden="true">+</span></a></div>
+@if (Model.Count == 0)
+{
+    <section class="panel saved-empty"><svg viewBox="0 0 72 72" aria-hidden="true"><path d="M22 13h28v48L36 50 22 61z"/><path d="M30 29h12m-6-6v12"/></svg><h2>Пока нет сохранённых вариантов</h2><p>Выполните расчёт, задайте понятное название и нажмите «Сохранить расчёт».</p><a asp-action="Index" class="button primary">Перейти к расчёту <span aria-hidden="true">→</span></a></section>
+}
+else
+{
+    <div class="saved-list-header"><span>ВАРИАНТОВ: @Model.Count</span><span>Новые расчёты отображаются первыми</span></div>
+    <div class="saved-grid">
+    @foreach (var item in Model)
+    {
+        <article class="panel saved-card"><div class="saved-card-top"><span class="saved-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg></span><time datetime="@item.SavedAt.ToString("O")">@item.SavedAt.ToLocalTime().ToString("dd.MM.yyyy · HH:mm")</time></div><h2>@item.Name</h2><dl class="saved-details"><div><dt>Высота слоя</dt><dd>@N(item.Input.Height) м</dd></div><div><dt>Скорость газа</dt><dd>@N(item.Input.GasVelocity) м/с</dd></div><div><dt>Материал на входе</dt><dd>@N(item.Input.MaterialInletTemperature) °C</dd></div><div><dt>Газ на входе</dt><dd>@N(item.Input.GasInletTemperature) °C</dd></div></dl><div class="saved-actions"><a asp-action="Load" asp-route-id="@item.Id" class="button secondary">Открыть расчёт <span aria-hidden="true">↗</span></a><form asp-action="Delete" method="post"><input type="hidden" name="id" value="@item.Id" /><button type="submit" class="delete-button" aria-label="Удалить расчёт @item.Name">Удалить</button></form></div></article>
+    }
+    </div>
+}

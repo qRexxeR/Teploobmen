@@ -1,0 +1,70 @@
+@model CalculatorViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Расчёт";
+    var r = Model.Result;
+    string N(double value, int decimals = 2) => value.ToString("N" + decimals, CultureInfo.GetCultureInfo("ru-RU"));
+}
+<div class="page-heading">
+    <div><div class="eyebrow">ПРАКТИКА 2 <span> / </span> РАСЧЁТНАЯ МОДЕЛЬ</div><h1>Теплообмен в противотоке</h1><p>Температурные поля материала и газа по высоте плотного продуваемого слоя.</p></div>
+    <a class="text-link heading-help" asp-action="Method">Уравнения модели <span aria-hidden="true">↗</span></a>
+</div>
+<div class="calculator-grid">
+    <section class="panel input-panel" aria-labelledby="input-title">
+        <div class="panel-title"><h2 id="input-title">Исходные данные</h2><a asp-action="Index" class="small-link" title="Восстановить данные варианта 16">Вариант 16 <span aria-hidden="true">↺</span></a></div>
+        <form asp-controller="Calculator" asp-action="Calculate" method="post" id="calculation-form">
+            <input asp-for="SavedId" type="hidden" />
+            <div asp-validation-summary="All" class="validation-summary" role="alert"></div>
+            <fieldset>
+                <legend><span class="section-number">01</span> Геометрия слоя</legend>
+                <div class="field-pair">
+                    <div class="field"><label asp-for="Input.Height">Высота слоя <span>H₀</span></label><div class="input-with-unit"><input asp-for="Input.Height" type="text" inputmode="decimal" autocomplete="off" /><span>м</span></div><span asp-validation-for="Input.Height"></span></div>
+                    <div class="field"><label asp-for="Input.Diameter">Диаметр <span>D</span></label><div class="input-with-unit"><input asp-for="Input.Diameter" type="text" inputmode="decimal" autocomplete="off" /><span>м</span></div><span asp-validation-for="Input.Diameter"></span></div>
+                </div>
+                <div class="field"><label asp-for="Input.Step">Шаг расчёта <span>Δy</span></label><div class="input-with-unit"><input asp-for="Input.Step" type="text" inputmode="decimal" autocomplete="off" /><span>м</span></div><span asp-validation-for="Input.Step"></span></div>
+            </fieldset>
+            <fieldset>
+                <legend><span class="section-number">02</span> Температуры на входе</legend>
+                <div class="field-pair">
+                    <div class="field"><label asp-for="Input.MaterialInletTemperature"><i class="material-dot" aria-hidden="true"></i> Материал <span>t′</span></label><div class="input-with-unit"><input asp-for="Input.MaterialInletTemperature" type="text" inputmode="decimal" autocomplete="off" /><span>°C</span></div><span asp-validation-for="Input.MaterialInletTemperature"></span></div>
+                    <div class="field"><label asp-for="Input.GasInletTemperature"><i class="gas-dot" aria-hidden="true"></i> Газ <span>T′</span></label><div class="input-with-unit"><input asp-for="Input.GasInletTemperature" type="text" inputmode="decimal" autocomplete="off" /><span>°C</span></div><span asp-validation-for="Input.GasInletTemperature"></span></div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend><span class="section-number">03</span> Параметры потоков</legend>
+                <div class="field"><label asp-for="Input.GasVelocity">Скорость газа <span>wг</span></label><div class="input-with-unit"><input asp-for="Input.GasVelocity" type="text" inputmode="decimal" autocomplete="off" /><span>м/с</span></div><span asp-validation-for="Input.GasVelocity"></span></div>
+                <div class="field"><label asp-for="Input.MaterialFlow">Расход материала <span>Gм</span></label><div class="input-with-unit"><input asp-for="Input.MaterialFlow" type="text" inputmode="decimal" autocomplete="off" /><span>кг/с</span></div><span asp-validation-for="Input.MaterialFlow"></span></div>
+                <div class="field"><label asp-for="Input.GasHeatCapacity">Объёмная теплоёмкость газа <span>Cг</span></label><div class="input-with-unit"><input asp-for="Input.GasHeatCapacity" type="text" inputmode="decimal" autocomplete="off" /><span>кДж/(м³·К)</span></div><span asp-validation-for="Input.GasHeatCapacity"></span></div>
+                <div class="field"><label asp-for="Input.MaterialHeatCapacity">Теплоёмкость материала <span>Cм</span></label><div class="input-with-unit"><input asp-for="Input.MaterialHeatCapacity" type="text" inputmode="decimal" autocomplete="off" /><span>кДж/(кг·К)</span></div><span asp-validation-for="Input.MaterialHeatCapacity"></span></div>
+                <div class="field"><label asp-for="Input.HeatTransferCoefficient">Объёмный коэффициент теплоотдачи <span>αV</span></label><div class="input-with-unit"><input asp-for="Input.HeatTransferCoefficient" type="text" inputmode="decimal" autocomplete="off" /><span>Вт/(м³·К)</span></div><span asp-validation-for="Input.HeatTransferCoefficient"></span></div>
+            </fieldset>
+            <button type="submit" class="button primary calculate-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>Рассчитать теплообмен</button>
+            <div class="save-section"><label asp-for="CalculationName">Название варианта</label><input asp-for="CalculationName" maxlength="100" placeholder="Например, Вариант 16" /><span asp-validation-for="CalculationName"></span><button type="submit" asp-action="Save" class="button secondary save-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z"/></svg>Сохранить расчёт</button><p class="field-hint">Варианты остаются доступны после перезапуска приложения.</p></div>
+        </form>
+    </section>
+    <div class="results-column">
+        @if (r is not null)
+        {
+            <div class="results-heading"><h2>Результаты расчёта</h2><span class="result-context">@r.Points.Count точек <span>·</span> H₀ = @N(Model.Input.Height) м</span></div>
+            <div class="metric-grid">
+                <article class="metric material-metric"><span class="metric-label"><i class="material-dot"></i>Материал на выходе</span><div class="metric-value">@N(r.MaterialOutletTemperature)<span>°C</span></div><small>Нижняя граница слоя</small></article>
+                <article class="metric gas-metric"><span class="metric-label"><i class="gas-dot"></i>Газ на выходе</span><div class="metric-value">@N(r.GasOutletTemperature)<span>°C</span></div><small>Верхняя граница слоя</small></article>
+                <article class="metric"><span class="metric-label">Тепловой поток</span><div class="metric-value">@N(r.HeatFlowKw)<span>кВт</span></div><small>Передача теплоты материалу</small></article>
+                <article class="metric"><span class="metric-label">Эффективность</span><div class="metric-value">@N(r.Effectiveness * 100)<span>%</span></div><small>От предельного теплообмена</small></article>
+            </div>
+            <section class="panel chart-panel" aria-labelledby="temperature-title">
+                <div class="chart-heading"><div><h2 id="temperature-title">Температурные поля</h2><p>Изменение температуры по высоте слоя</p></div><div class="chart-legend"><span><i class="legend-line material-line"></i>Материал</span><span><i class="legend-line gas-line"></i>Газ</span></div></div>
+                <div class="chart-host" id="temperature-chart" data-chart="temperature" tabindex="0" aria-label="График температур материала и газа. Используйте стрелки влево и вправо для просмотра точек. Значения доступны в таблице ниже."><div class="chart-tooltip" role="status" hidden></div></div>
+                <div class="chart-footnote"><span><i class="coordinate-arrow" aria-hidden="true">↓</i> y отсчитывается сверху вниз</span><span>Материал ↓ <span class="flow-divider">/</span> Газ ↑</span></div>
+            </section>
+            <section class="panel chart-panel delta-panel" aria-labelledby="delta-title"><div class="chart-heading"><div><h2 id="delta-title">Разность температур</h2><p>Температурный напор между газом и материалом</p></div><span class="formula-badge">ΔT = T − t</span></div><div class="chart-host compact-chart" id="delta-chart" data-chart="delta" tabindex="0" aria-label="График разности температур T минус t. Значения доступны в таблице ниже."><div class="chart-tooltip" role="status" hidden></div></div></section>
+            <section class="panel derived-panel" aria-label="Характеристики модели"><dl><div><dt>Площадь сечения S</dt><dd>@N(r.Area, 4) <small>м²</small></dd></div><div><dt>Расход газа Vг</dt><dd>@N(r.GasVolumeFlow, 4) <small>м³/с</small></dd></div><div><dt>Отношение потоков m</dt><dd>@N(r.CapacityRatio, 6)</dd></div><div><dt>Относительная высота Y₀</dt><dd>@N(r.TotalRelativeHeight, 4)</dd></div></dl></section>
+            <section class="panel table-panel" aria-labelledby="table-title"><div class="panel-title"><div><h2 id="table-title">Расчёт по высоте слоя</h2><p>Точные значения в заданных координатах</p></div><button type="submit" form="calculation-form" formaction="@Url.Action("Export", "Calculator")" class="button tertiary export-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-4-4 4 4 4-4M5 16v4h14v-4"/></svg>CSV</button></div><div class="table-scroll" role="region" aria-label="Таблица температур" tabindex="0"><table class="results-table"><thead><tr><th scope="col">y, м</th><th scope="col">Y</th><th scope="col"><i class="material-dot"></i>Материал t, °C</th><th scope="col"><i class="gas-dot"></i>Газ T, °C</th><th scope="col">T − t, °C</th></tr></thead><tbody>@foreach (var point in r.Points){<tr><td>@N(point.Height, 3)</td><td>@N(point.RelativeHeight, 4)</td><td>@N(point.MaterialTemperature)</td><td>@N(point.GasTemperature)</td><td>@N(point.DeltaTemperature)</td></tr>}</tbody></table></div><div class="balance-note"><span>Невязка теплового баланса</span><strong>@r.EnergyBalanceResidual.ToString("0.###E+0", CultureInfo.GetCultureInfo("ru-RU")) <small>Вт</small></strong></div></section>
+            <script type="application/json" id="calculation-data">@Html.Raw(JsonSerializer.Serialize(r.Points.Select(point => new { y = point.Height, relativeHeight = point.RelativeHeight, material = point.MaterialTemperature, gas = point.GasTemperature, delta = point.DeltaTemperature })))</script>
+        }
+        else
+        {
+            <section class="panel result-empty"><span class="empty-symbol" aria-hidden="true">∿</span><h2>Проверьте исходные данные</h2><p>Исправьте отмеченные поля и нажмите «Рассчитать теплообмен». Здесь появятся температурные поля и таблица результатов.</p></section>
+        }
+    </div>
+</div>

@@ -1,0 +1,55 @@
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var calculationsActive = action is "Index" or "Calculate" or "Save" or "Load";
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#172c34" />
+    <meta name="description" content="Расчёт стационарного теплообмена в противоточном плотном продуваемом слое. Температурные поля материала и газа, таблица и сохранённые варианты." />
+    <title>@ViewData["Title"] — Теплообмен</title>
+    <link rel="stylesheet" href="~/css/heat-exchange.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="skip-link" href="#main">Перейти к содержимому</a>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" asp-controller="Calculator" asp-action="Index" aria-label="Теплообмен — расчёт">
+                <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 36 36"><path d="M11 7v22m-5-6 5 6 5-6"/><path d="M25 29V7m-5 6 5-6 5 6"/></svg></span>
+                <span>Теплообмен<small>РАСЧЁТНАЯ ЛАБОРАТОРИЯ</small></span>
+            </a>
+            <div class="nav-label">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+            <nav class="main-nav" aria-label="Основная навигация">
+                <a asp-controller="Calculator" asp-action="Index" class="@(calculationsActive ? "active" : "")" aria-current="@(calculationsActive ? "page" : null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M6 15l4-5 4 3 5-8"/><path d="M4 4v15"/></svg>Расчёт</a>
+                <a asp-controller="Calculator" asp-action="Saved" class="@(action == "Saved" ? "active" : "")" aria-current="@(action == "Saved" ? "page" : null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z"/></svg>Сохранённые</a>
+                <a asp-controller="Calculator" asp-action="Method" class="@(action == "Method" ? "active" : "")" aria-current="@(action == "Method" ? "page" : null)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 10v6m0-9v.5"/></svg>О модели</a>
+            </nav>
+            <div class="sidebar-diagram" aria-hidden="true">
+                <div class="diagram-label">ПРОТИВОТОК</div>
+                <svg viewBox="0 0 170 165"><path class="shaft" d="M48 23h74v118H48z"/><path class="material-arrow" d="M71 10v139m-7-9 7 9 7-9"/><path class="gas-arrow" d="M100 152V13m-7 9 7-9 7 9"/><circle cx="57" cy="49" r="2"/><circle cx="112" cy="72" r="2"/><circle cx="83" cy="89" r="2"/><circle cx="61" cy="115" r="2"/><circle cx="113" cy="120" r="2"/></svg>
+                <div class="diagram-key"><span><i class="material-dot"></i>Материал</span><span><i class="gas-dot"></i>Газ</span></div>
+            </div>
+            <div class="sidebar-footer"><span>Практика 2</span><strong>Вариант 16</strong><small>Модели с распределёнными<br />параметрами</small></div>
+        </aside>
+        <div class="workspace">
+            <header class="topbar"><span>Моделирование процессов <span class="topbar-separator">/</span> Теплообмен</span><span class="mode-indicator"><i></i>Стационарная модель</span></header>
+            <main id="main" class="main-content">
+                @if (TempData["Success"] is string success)
+                {
+                    <div class="notice success" role="status"><span class="notice-symbol" aria-hidden="true">✓</span>@success</div>
+                }
+                @if (TempData["Error"] is string error)
+                {
+                    <div class="notice error" role="alert">@error</div>
+                }
+                @RenderBody()
+            </main>
+            <footer class="page-footer"><span>Теплообмен в плотном продуваемом слое</span><span>ASP.NET Core MVC · C#</span></footer>
+        </div>
+    </div>
+    <script src="~/js/heat-exchange.js" asp-append-version="true" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
