@@ -1,25 +1,15 @@
-var builder = WebApplication.CreateBuilder(args);
+using Teploobmen.Infrastructure;
+using Teploobmen.Services;
 
-// Add services to the container.
-builder.Services.AddRazorPages();
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllersWithViews(options =>
+    options.ModelBinderProviders.Insert(0, new FlexibleDoubleModelBinderProvider()));
+builder.Services.AddSingleton<HeatExchangeCalculator>();
+builder.Services.AddSingleton<CalculationStore>();
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
-
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment()) app.UseExceptionHandler("/Calculator/Error");
 app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseAuthorization();
-
-app.MapRazorPages();
-
+app.MapControllerRoute("default", "{controller=Calculator}/{action=Index}/{id?}");
 app.Run();
