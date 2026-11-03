@@ -1,0 +1,8 @@
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+Teploobmen/App_Data/
+TestResults/
+.DS_Store
